@@ -4,7 +4,7 @@ import numpy as np
 class Layer:
     def __init__(self, input_size, output_size, activation, weight_init='Xavier'):
         if weight_init == 'Xavier':
-            scale = np.sqrt(1 / (input_size+output_size))
+            scale = np.sqrt(1 / (input_size))
         elif weight_init == 'random':
             scale = 1
         self.weights = np.random.randn(input_size, output_size) * scale
