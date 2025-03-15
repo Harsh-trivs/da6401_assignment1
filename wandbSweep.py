@@ -86,7 +86,7 @@ def main(args):
     }
 
     # Run the sweep
-    sweep_id = wandb.sweep(sweep_config, project="da6401_assignment_1_mse")
+    sweep_id = wandb.sweep(sweep_config, project="da6401_assignment_1")
     wandb.agent(sweep_id, train, count=75)
 
 if __name__ == "__main__":

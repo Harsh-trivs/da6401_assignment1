@@ -4,7 +4,7 @@ import numpy as np
 class Layer:
     def __init__(self, input_size, output_size, activation, weight_init='Xavier'):
         if weight_init == 'Xavier':
-            scale = np.sqrt(1 / (input_size))
+            scale = np.sqrt(2 / (input_size))
         elif weight_init == 'random':
             scale = 1
         self.weights = np.random.randn(input_size, output_size) * scale
@@ -22,7 +22,7 @@ class Layer:
         elif self.activation_name == 'softmax':
             exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
             return exp_x / np.sum(exp_x, axis=1, keepdims=True)
-        elif self.activation_name == 'linear':
+        elif self.activation_name == 'identity':
             return x
         else:
             raise ValueError("Unsupported activation function")
@@ -35,7 +35,7 @@ class Layer:
             return sig * (1 - sig)
         elif self.activation_name == 'tanh':
             return 1 - np.tanh(x) ** 2
-        elif self.activation_name == 'linear':
+        elif self.activation_name == 'identity':
             return np.ones_like(x)
         else:
             raise ValueError("Unsupported activation function")
@@ -63,7 +63,7 @@ class FeedForwardNN:
         if self.loss_function == 'cross_entropy':
             activations = [layer[1] for layer in hidden_layers] + ['softmax']
         elif self.loss_function == 'mean_squared_error':
-            activations = [layer[1] for layer in hidden_layers] + ['linear']
+            activations = [layer[1] for layer in hidden_layers] + ['identity']
         else:
             raise ValueError("Unsupported loss function")
 
@@ -118,14 +118,37 @@ class FeedForwardNN:
                 layer.biases -= self.lr * state["v_biases"]
             
             elif self.optimizer == "nag":
-                v_prev_w = state["v_weights"]
-                v_prev_b = state["v_biases"]
+                lookahead_weights = layer.weights - self.momentum * state["v_weights"]
+                lookahead_biases = layer.biases - self.momentum * state["v_biases"]
+                temp_weights = layer.weights
+                temp_biases = layer.biases
+
+                layer.weights = lookahead_weights
+                layer.biases = lookahead_biases
+
+                self.forward(X)
+                if self.loss_function == 'cross_entropy':
+                    temp_dz = self.a[-1] - y_one_hot
+                elif self.loss_function == 'mean_squared_error':
+                    temp_dz = 2 * (self.a[-1] - y_one_hot) / y.shape[0]
+
+                for j in range(len(self.layers) - 1, i-1, -1):
+                    current_layer = self.layers[j]
+                    next_dw = np.dot(self.a[j].T, temp_dz) / m
+                    next_db = np.sum(temp_dz, axis=0, keepdims=True) / m
+                    if j>0:
+                        temp_dz = np.dot(temp_dz, current_layer.weights.T) * self.layers[j - 1].activation_derivative(self.z[j - 1])
+
+                layer.weights = temp_weights
+                layer.biases = temp_biases
+                dw =next_dw
+                db = next_db
                 
-                state["v_weights"] = self.momentum * state["v_weights"] + self.lr * dw
-                state["v_biases"] = self.momentum * state["v_biases"] + self.lr * db
+                state["v_weights"] = self.momentum * state["v_weights"] + dw
+                state["v_biases"] = self.momentum * state["v_biases"] + db
                 
-                layer.weights -= self.momentum * v_prev_w + (1 - self.momentum) * state["v_weights"]
-                layer.biases -= self.momentum * v_prev_b + (1 - self.momentum) * state["v_biases"]
+                layer.weights -= self.lr * state["v_weights"]
+                layer.biases -= self.lr * state["v_biases"]
             
             elif self.optimizer == "rmsprop":
                 # RMSProp

@@ -26,7 +26,7 @@ def get_args():
     parser.add_argument("-beta2", "--beta2", type=float, default=0.999)
     parser.add_argument("-eps", "--epsilon", type=float, default=1e-6)
     parser.add_argument("-w_d", "--weight_decay", type=float, default=0.0005)
-    parser.add_argument("-w_i", "--weight_init",type=str,default='Xavier')
+    parser.add_argument("-w_i", "--weight_init",choices= ["random", "Xavier"],default='Xavier')
     parser.add_argument("-nhl", "--num_layers", type=int, default=4)
     parser.add_argument("-sz", "--hidden_size", type=int, default=256)
     parser.add_argument("-a", "--activation", choices=["identity", "sigmoid", "tanh", "ReLU"], default="tanh")
@@ -38,9 +38,6 @@ def load_data(dataset):
         (X_train, y_train), (X_test, y_test) = mnist.load_data()
     else:
         (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
-
-    X_train, X_test = X_train / 255.0, X_test / 255.0  # Normalize
-    X_train, X_test = X_train.reshape(-1, 28 * 28), X_test.reshape(-1, 28 * 28)
     return X_train, y_train, X_test, y_test
 
 # Main training flow
@@ -102,11 +99,10 @@ def main():
             plt.text(len(display_labels) + 1.5, i + 0.5, f'P: {precision[i]:.2f}', va='center', ha='left', fontsize=10, color='black')
             plt.text(i + 0.5, len(display_labels) + 1.2, f'R: {recall[i]:.2f}', va='top', ha='center', fontsize=10, color='black')
 
-        plt.title(f'Confusion Matrix with Accuracy: {accuracy:.2%} (Epoch {i+1})')
+        plt.title(f'Confusion Matrix with Accuracy: {accuracy:.2%}')
         plt.xlabel('True Labels')
         plt.ylabel('Predicted Labels')
         plt.tight_layout()
-
         # Log the confusion matrix image to WandB
         wandb.log({
             "val_loss": val_loss,
@@ -115,6 +111,7 @@ def main():
             "test_accuracy": test_accuracy,
             "confusion_matrix": wandb.Image(plt),
         })
+        plt.close()
 
 if __name__ == "__main__":
     main()

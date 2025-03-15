@@ -41,7 +41,7 @@ def main(args):
 
     # Initialize wandb
     wandb.finish()  # Close any existing session
-    wandb.init(project="da6401_assignment_1_mse",name="confusion_matrix", reinit=True)
+    wandb.init(project="da6401_assignment_1",name="confusion_matrix", reinit=True)
 
     val_acc = []
     val_l = []
@@ -77,7 +77,7 @@ def main(args):
             plt.text(len(display_labels) + 1.5, i + 0.5, f'P: {precision[i]:.2f}', va='center', ha='left', fontsize=10, color='black')
             plt.text(i + 0.5, len(display_labels) + 1.2, f'R: {recall[i]:.2f}', va='top', ha='center', fontsize=10, color='black')
 
-        plt.title(f'Confusion Matrix with Accuracy: {accuracy:.2%} (Epoch {i+1})')
+        plt.title(f'Confusion Matrix with Accuracy: {accuracy:.2%}')
         plt.xlabel('True Labels')
         plt.ylabel('Predicted Labels')
         plt.tight_layout()
