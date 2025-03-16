@@ -72,3 +72,7 @@
     | `-nhl`, `--num_layers` | 4 | Number of hidden layers used in feedforward neural network. |
     | `-sz`, `--hidden_size` | 256 | Number of hidden neurons in a feedforward layer. |
     | `-a`, `--activation` | tanh | choices: ["identity", "sigmoid", "tanh", "ReLU"] |
+
+- Report Link : https://api.wandb.ai/links/harshtrivs-indian-institute-of-technology-madras/fpvvi60o
+
+- Github Link : https://github.com/Harsh-trivs/da6401_assignment1.git
